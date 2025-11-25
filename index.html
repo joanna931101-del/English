@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英文日常生活用語學習中心 - 科技風</title>
+    <!-- 載入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 使用 Inter 字體並模擬數位風格 */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117; /* GitHub Dark Mode / Deep Dark */
+            color: #e2e8f0; /* Light text for contrast */
+        }
+        
+        /* 科技風卡片樣式: 螢光邊框和發光效果 */
+        .card {
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.6), 0 0 15px rgba(0, 255, 255, 0.2);
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 1px solid #00FFFF; /* Neon Cyan Border */
+            background-color: #161b22; /* Darker than body */
+        }
+        .card:hover {
+            box-shadow: 0 0 12px rgba(0, 255, 255, 1), 0 0 25px rgba(0, 255, 255, 0.4);
+            transform: translateY(-3px);
+        }
+        
+        /* 導航按鈕的霓虹光點 */
+        .nav-button-active {
+            box-shadow: 0 0 5px #00FFFF, 0 0 10px #00FFFF;
+            border: 1px solid #00FFFF;
+        }
+
+        /* 記憶卡片專用樣式 */
+        .memory-card {
+            width: 100px;
+            height: 100px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        @media (max-width: 640px) {
+            .memory-card {
+                width: 80px;
+                height: 80px;
+            }
+        }
+
+        .memory-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .memory-card.flipped .memory-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .memory-card-front, .memory-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            border: 2px solid #00FFFF; /* Neon Blue/Cyan */
+            padding: 5px;
+            overflow: hidden;
+            font-weight: bold;
+        }
+
+        .memory-card-front {
+            background-color: #00BFFF; /* Bright Blue cover */
+            color: #0d1117; 
+            font-size: 1.5rem;
+        }
+
+        .memory-card-back {
+            background-color: #1f2937; /* Dark background */
+            color: #00FFFF; /* Neon text for content */
+            transform: rotateY(180deg);
+            font-size: 0.8rem;
+        }
+
+        .memory-card.matched .memory-card-front {
+            background-color: #00FF00; /* Neon Green Match */
+            border-color: #00AA00;
+        }
+
+        .memory-card.matched .memory-card-back {
+            background-color: #004d40; /* Darker Green Match */
+            border-color: #00FF00;
+        }
+        
+        .quiz-option {
+             /* 模擬數位按鈕 */
+            border: 1px solid #4a4d53;
+            transition: all 0.2s;
+        }
+        .quiz-option:hover:not(:disabled) {
+            border-color: #00FFFF;
+            box-shadow: 0 0 5px rgba(0, 255, 255, 0.8);
+            transform: scale(1.02);
+        }
+    </style>
+    <!-- Firebase 初始化 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        if (Object.keys(firebaseConfig).length > 0) {
+            try {
+                const app = initializeApp(firebaseConfig);
+                console.log("Firebase 應用程式已初始化。");
+            } catch (error) {
+                console.error("Firebase 初始化失敗:", error);
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto p-6 md:p-10 rounded-xl card">
+        <h1 class="text-3xl font-extrabold text-cyan-400 mb-8 text-center tracking-wider">
+            :: 日常英文用語 | 互動介面 V3.0 ::
+        </h1>
+
+        <!-- 導航列 -->
+        <nav class="flex justify-center space-x-2 md:space-x-4 mb-8 p-1 bg-gray-900 rounded-xl border border-gray-700">
+            <button data-tab="learn" class="tab-button bg-cyan-700 text-white px-4 py-2 rounded-lg font-medium transition duration-150 nav-button-active">
+                觀看例句學習
+            </button>
+            <button data-tab="quiz" class="tab-button bg-gray-700 text-cyan-400 px-4 py-2 rounded-lg font-medium hover:bg-gray-600 transition duration-150">
+                問答遊戲 (選擇題)
+            </button>
+            <button data-tab="memory" class="tab-button bg-gray-700 text-cyan-400 px-4 py-2 rounded-lg font-medium hover:bg-gray-600 transition duration-150">
+                記憶力配對遊戲
+            </button>
+        </nav>
+
+        <!-- 內容區域 -->
+        <div id="content-container">
+            <!-- 學習模式 -->
+            <section id="learn-tab" class="tab-content">
+                <h2 class="text-2xl font-bold text-gray-200 mb-4 border-b border-cyan-700 pb-2">
+                    // 核心詞彙庫存取
+                </h2>
+                <div id="phrases-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Phrases will be dynamically inserted here -->
+                </div>
+            </section>
+
+            <!-- 問答遊戲模式 -->
+            <section id="quiz-tab" class="tab-content hidden">
+                <h2 class="text-2xl font-bold text-gray-200 mb-6 border-b border-cyan-700 pb-2">
+                    // 知識驗證模組
+                </h2>
+                <div id="quiz-area" class="bg-gray-900 p-6 rounded-lg card border-cyan-600">
+                    <p class="text-lg font-semibold mb-4 text-cyan-400">
+                        [ 積分報告 ]：<span id="quiz-score" class="text-green-400 font-bold text-xl">0</span>
+                    </p>
+                    <div id="question-display" class="mb-6">
+                        <p class="text-xl font-bold text-gray-300 mb-2">
+                            > 執行翻譯查詢：
+                        </p>
+                        <p id="question-phrase" class="text-3xl font-extrabold text-lime-400 bg-gray-700 p-3 rounded-md border border-lime-400/50"></p>
+                    </div>
+                    <div id="options-container" class="space-y-3">
+                        <!-- Options will be dynamically inserted here -->
+                    </div>
+                    <button id="next-question-button" class="mt-6 w-full bg-indigo-700 text-white font-bold py-3 rounded-lg hover:bg-indigo-600 transition duration-150 hidden border-2 border-indigo-400 shadow-lg shadow-indigo-500/50">
+                        [ 傳輸下一組資料 ]
+                    </button>
+                    <div id="quiz-feedback" class="mt-4 text-center font-bold text-lg hidden p-2 rounded-lg border-2"></div>
+                </div>
+            </section>
+
+            <!-- 記憶力配對遊戲模式 -->
+            <section id="memory-tab" class="tab-content hidden">
+                <h2 class="text-2xl font-bold text-gray-200 mb-4 border-b border-cyan-700 pb-2">
+                    // 記憶體配對校準 (10組)
+                </h2>
+                <div class="flex flex-col sm:flex-row justify-between items-center mb-6 bg-gray-900 p-4 rounded-lg border border-gray-700">
+                    <p class="text-lg font-semibold text-cyan-400 mb-2 sm:mb-0">
+                        [ 進度追蹤 ]：已配對 <span id="match-count" class="text-green-400 font-bold">0</span> / 10
+                    </p>
+                    <button id="restart-memory-button" class="bg-red-700 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-600 transition duration-150 border-2 border-red-400 shadow-lg shadow-red-500/50">
+                        <span class="inline-block transform -translate-y-px">💥 重啟模擬</span>
+                    </button>
+                </div>
+                <div id="memory-game-board" class="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-8 gap-3 justify-center p-3">
+                    <!-- Memory cards will be dynamically inserted here -->
+                </div>
+                <div id="memory-game-message" class="mt-8 text-center text-3xl font-extrabold text-lime-400 tracking-widest hidden p-4 bg-gray-900 rounded-lg border-2 border-lime-400/50">
+                    [ 任務完成 ] 恭喜！資料流已成功同步！
+                </div>
+            </section>
+        </div>
+
+    </div>
+
+    <script>
+        // 20 個日常生活用語資料
+        const phrasesData = [
+            { english: "How's it going?", chinese: "你好嗎？/ 近況如何？", example: "Hey, Tom! How's it going with the new project?" },
+            { english: "What's up?", chinese: "怎麼了？/ 嗨，近來如何？", example: "What's up? You look happy today." },
+            { english: "Take care!", chinese: "保重！/ 替我照顧好自己！", example: "It was great seeing you. Take care!" },
+            { english: "See you around.", chinese: "之後見。", example: "I'm heading out. See you around!" },
+            { english: "I'm good, thanks!", chinese: "我很好，謝謝！", example: "How are you? I'm good, thanks!" },
+            { english: "No worries.", chinese: "不用擔心。/ 沒關係。", example: "Thanks for fixing my computer. No worries at all." },
+            { english: "Sounds good!", chinese: "聽起來不錯！/ 好的！", example: "Let's meet at 7 PM. Sounds good!" },
+            { english: "I got it.", chinese: "我明白了。/ 我來處理。", example: "The bill is $50. Don't worry, I got it." },
+            { english: "Never mind.", chinese: "沒事了。/ 算了。", example: "I lost my key... ah, wait, never mind, I found it." },
+            { english: "I appreciate it.", chinese: "我很感謝。/ 謝謝你的幫忙。", example: "You saved me a lot of time. I really appreciate it." },
+            { english: "Just chilling.", chinese: "只是在放鬆。/ 沒做什麼特別的。", example: "What are you doing? Just chilling at home." },
+            { english: "Excuse me?", chinese: "不好意思，借過一下。/ 請問.../ 請你重複一遍？", example: "Excuse me? Could you tell me where the exit is?" },
+            { english: "Could you do me a favor?", chinese: "你能幫我一個忙嗎？", example: "I need to move this box. Could you do me a favor?" },
+            { english: "I'm running late.", chinese: "我要遲到了。", example: "Sorry, I'm running late due to traffic." },
+            { english: "What's the plan?", chinese: "計畫是什麼？", example: "It's Friday night. What's the plan for the weekend?" },
+            { english: "I'm looking forward to it.", chinese: "我很期待。", example: "The concert is next month. I'm looking forward to it!" },
+            { english: "It's up to you.", chinese: "由你決定。/ 你說了算。", example: "Do you want pizza or pasta? It's up to you." },
+            { english: "That makes sense.", chinese: "這很合理。/ 我懂了。", example: "Oh, I see. That makes sense now." },
+            { english: "I'm not following.", chinese: "我不太明白你的意思。", example: "Can you explain that again? I'm not following." },
+            { english: "Give me a break!", chinese: "饒了我吧！/ 讓我休息一下！", example: "Stop complaining about homework, give me a break!" }
+        ];
+
+        // --- 通用功能：TTS (Text-to-Speech) ---
+        const synth = window.speechSynthesis;
+        let defaultVoice = null;
+
+        function getDefaultVoice() {
+            // 嘗試尋找一個美式英文的聲音作為預設
+            const voices = synth.getVoices();
+            defaultVoice = voices.find(voice => voice.lang === 'en-US' || (voice.lang.startsWith('en-') && voice.name.includes('Google')) || voice.lang.startsWith('en-')) || voices[0];
+            return defaultVoice;
+        }
+
+        function speak(text) {
+            if (!synth) {
+                console.error("瀏覽器不支援 Speech Synthesis API.");
+                // Note: Per instructions, use custom message box instead of alert. Here we use console.error and a fallback.
+                return; 
+            }
+
+            // 如果 defaultVoice 還沒設定，嘗試載入
+            if (!defaultVoice) {
+                getDefaultVoice();
+            }
+
+            // 取消任何正在進行的語音
+            synth.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US'; // 設定為美式英文
+            utterance.rate = 0.9; // 稍微慢一點
+            utterance.pitch = 1;
+
+            // 嘗試使用預設的英文聲音
+            if (defaultVoice) {
+                utterance.voice = defaultVoice;
+            }
+
+            synth.speak(utterance);
+        }
+
+        // 確保聲音載入完成
+        if (synth.onvoiceschanged !== undefined) {
+            synth.onvoiceschanged = getDefaultVoice;
+        }
+
+        // --- 介面切換功能 ---
+        function changeTab(targetTabId) {
+            document.querySelectorAll('.tab-content').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(targetTabId + '-tab').classList.remove('hidden');
+
+            document.querySelectorAll('.tab-button').forEach(button => {
+                const isActive = button.getAttribute('data-tab') === targetTabId;
+                
+                // 移除所有按鈕的科技風 active 樣式
+                button.classList.remove('nav-button-active', 'bg-cyan-700', 'text-white', 'bg-gray-700', 'text-cyan-400', 'hover:bg-gray-600');
+                
+                if (isActive) {
+                    button.classList.add('bg-cyan-700', 'text-white', 'nav-button-active');
+                    button.classList.remove('bg-gray-700', 'text-cyan-400', 'hover:bg-gray-600');
+                } else {
+                    button.classList.add('bg-gray-700', 'text-cyan-400', 'hover:bg-gray-600');
+                }
+            });
+
+            // 如果切換到 Quiz 或 Memory，重新開始
+            if (targetTabId === 'quiz') {
+                startQuiz();
+            } else if (targetTabId === 'memory') {
+                initializeMemoryGame();
+            }
+        }
+
+        // 設置導航按鈕點擊事件
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                changeTab(button.getAttribute('data-tab'));
+            });
+        });
+
+        // --- 1. 學習模式 (Learn Tab) ---
+        function renderLearnMode() {
+            const listContainer = document.getElementById('phrases-list');
+            listContainer.innerHTML = '';
+
+            phrasesData.forEach(item => {
+                const cardHtml = `
+                    <div class="bg-gray-800 p-4 rounded-lg border-l-4 border-cyan-400 hover:border-cyan-200 transition duration-150 card shadow-none hover:shadow-lg hover:shadow-cyan-500/30">
+                        <div class="flex justify-between items-start mb-2">
+                            <p class="text-xl font-bold text-cyan-400">${item.english}</p>
+                            <button onclick="speak('${item.english.replace(/'/g, "\\'")}')" class="text-cyan-500 hover:text-cyan-300 p-1 rounded-full bg-gray-900 border border-cyan-500 transition duration-150" title="發音">
+                                🔊
+                            </button>
+                        </div>
+                        <p class="text-lg text-lime-400 font-semibold mb-1">${item.chinese}</p>
+                        <p class="text-sm italic text-gray-400 border-t border-gray-700 pt-2 mt-2">
+                            [例句] <span class="text-gray-300">${item.example}</span>
+                        </p>
+                    </div>
+                `;
+                listContainer.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+
+        // --- 2. 問答遊戲 (Quiz Tab) ---
+        let currentQuestion = {};
+        let score = 0;
+        let quizHistory = [];
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function generateQuizQuestion() {
+            if (quizHistory.length === phrasesData.length) {
+                // 所有題目都出完了
+                document.getElementById('question-display').innerHTML = `
+                    <p class="text-2xl font-extrabold text-green-400">系統評估：任務已完成！</p>
+                    <p class="text-xl mt-2 text-gray-300">你的最終績效分數是: <span class="text-green-400">${score}</span> / ${phrasesData.length}</p>
+                `;
+                document.getElementById('options-container').innerHTML = '';
+                document.getElementById('next-question-button').classList.add('hidden');
+                document.getElementById('quiz-feedback').classList.add('hidden');
+                return;
+            }
+
+            // 選擇一個還沒問過的短語
+            let availablePhrases = phrasesData.filter((_, index) => !quizHistory.includes(index));
+            const questionIndex = phrasesData.indexOf(availablePhrases[Math.floor(Math.random() * availablePhrases.length)]);
+            quizHistory.push(questionIndex);
+            const correctPhrase = phrasesData[questionIndex];
+
+            // 選擇三個不重複的錯誤答案
+            let incorrectPhrases = phrasesData.filter(p => p.english !== correctPhrase.english);
+            incorrectPhrases = shuffleArray(incorrectPhrases).slice(0, 3);
+
+            // 建立選項
+            const options = [
+                { text: correctPhrase.chinese, isCorrect: true },
+                ...incorrectPhrases.map(p => ({ text: p.chinese, isCorrect: false }))
+            ];
+
+            currentQuestion = {
+                phrase: correctPhrase.english,
+                correctAnswer: correctPhrase.chinese,
+                options: shuffleArray(options)
+            };
+
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            document.getElementById('question-phrase').textContent = currentQuestion.phrase;
+            document.getElementById('options-container').innerHTML = '';
+            document.getElementById('next-question-button').classList.add('hidden');
+            document.getElementById('quiz-feedback').classList.add('hidden');
+
+            currentQuestion.options.forEach((option, index) => {
+                const optionButton = document.createElement('button');
+                optionButton.textContent = `[ ${String.fromCharCode(65 + index)} ] ${option.text}`;
+                optionButton.className = 'w-full text-left bg-gray-800 text-gray-50 p-3 rounded-lg font-mono quiz-option border-cyan-500 hover:bg-gray-700/70';
+                optionButton.setAttribute('data-is-correct', option.isCorrect);
+                optionButton.setAttribute('data-index', index);
+                optionButton.onclick = () => checkAnswer(optionButton, option.isCorrect);
+                document.getElementById('options-container').appendChild(optionButton);
+            });
+        }
+
+        function checkAnswer(selectedButton, isCorrect) {
+            const options = document.querySelectorAll('.quiz-option');
+            options.forEach(btn => {
+                btn.disabled = true;
+                const correct = btn.getAttribute('data-is-correct') === 'true';
+
+                btn.classList.remove('bg-gray-800', 'hover:bg-gray-700/70', 'border-cyan-500');
+
+                if (correct) {
+                    btn.classList.add('bg-green-600/50', 'border-green-400', 'text-green-300', 'font-extrabold', 'shadow-md', 'shadow-green-500/50');
+                } else if (btn === selectedButton) {
+                    btn.classList.add('bg-red-600/50', 'border-red-400', 'text-red-300', 'font-extrabold', 'shadow-md', 'shadow-red-500/50');
+                } else {
+                    btn.classList.add('bg-gray-700/50', 'border-gray-600', 'text-gray-500');
+                }
+            });
+
+            const feedbackDiv = document.getElementById('quiz-feedback');
+            feedbackDiv.classList.remove('hidden', 'text-red-400', 'text-green-400', 'bg-red-900/50', 'bg-green-900/50', 'border-red-400', 'border-green-400');
+            document.getElementById('next-question-button').classList.remove('hidden');
+
+            if (isCorrect) {
+                score++;
+                document.getElementById('quiz-score').textContent = score;
+                feedbackDiv.textContent = '✅ 評估結果：正確！數據同步成功。';
+                feedbackDiv.classList.add('text-green-400', 'bg-green-900/50', 'border-green-400');
+                speak(currentQuestion.phrase); // 正確時發音
+            } else {
+                feedbackDiv.textContent = `❌ 評估結果：錯誤。正確答案是：「${currentQuestion.correctAnswer}」`;
+                feedbackDiv.classList.add('text-red-400', 'bg-red-900/50', 'border-red-400');
+            }
+        }
+
+        document.getElementById('next-question-button').addEventListener('click', generateQuizQuestion);
+
+        function startQuiz() {
+            score = 0;
+            quizHistory = [];
+            document.getElementById('quiz-score').textContent = score;
+            generateQuizQuestion();
+        }
+
+        // --- 3. 記憶力配對遊戲 (Memory Tab) ---
+        let memoryCards = [];
+        let flippedCards = [];
+        let matchesFound = 0;
+        let isChecking = false;
+
+        function initializeMemoryGame() {
+            // 從 20 個中隨機選 10 個短語
+            const selectedPhrases = shuffleArray([...phrasesData]).slice(0, 10);
+            
+            // 創建配對卡片 (英文和中文)
+            let cardValues = [];
+            selectedPhrases.forEach((p, index) => {
+                cardValues.push({ id: index, type: 'en', text: p.english });
+                cardValues.push({ id: index, type: 'zh', text: p.chinese });
+            });
+
+            memoryCards = shuffleArray(cardValues);
+            matchesFound = 0;
+            updateMatchCount();
+            document.getElementById('memory-game-message').classList.add('hidden');
+            renderMemoryBoard();
+        }
+
+        function renderMemoryBoard() {
+            const board = document.getElementById('memory-game-board');
+            board.innerHTML = '';
+            
+            memoryCards.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'memory-card';
+                cardElement.setAttribute('data-id', card.id);
+                cardElement.setAttribute('data-index', index);
+                cardElement.onclick = () => flipCard(index);
+
+                cardElement.innerHTML = `
+                    <div class="memory-card-inner">
+                        <div class="memory-card-front">?</div>
+                        <div class="memory-card-back text-sm">
+                            ${card.text}
+                        </div>
+                    </div>
+                `;
+                board.appendChild(cardElement);
+            });
+        }
+
+        function flipCard(index) {
+            if (isChecking) return;
+
+            const cardElement = document.querySelector(`#memory-game-board .memory-card[data-index="${index}"]`);
+            if (!cardElement) return; // Guard against null element
+            
+            if (cardElement.classList.contains('flipped') || cardElement.classList.contains('matched')) return;
+
+            cardElement.classList.add('flipped');
+            flippedCards.push(cardElement);
+            
+            // 點擊英文卡片時發音
+            if (memoryCards[index].type === 'en') {
+                speak(memoryCards[index].text);
+            }
+
+            if (flippedCards.length === 2) {
+                isChecking = true;
+                setTimeout(checkForMatch, 1000);
+            }
+        }
+
+        function checkForMatch() {
+            const [card1, card2] = flippedCards;
+            
+            // Ensure both cards exist before checking attributes
+            if (!card1 || !card2) {
+                flippedCards = [];
+                isChecking = false;
+                return;
+            }
+            
+            const isMatch = card1.getAttribute('data-id') === card2.getAttribute('data-id');
+
+            if (isMatch) {
+                disableCards(card1, card2);
+                matchesFound++;
+                updateMatchCount();
+                if (matchesFound === 10) {
+                    document.getElementById('memory-game-message').classList.remove('hidden');
+                }
+            } else {
+                unflipCards(card1, card2);
+            }
+
+            // Reset flipped cards
+            flippedCards = [];
+            // Re-enable clicks after the check is complete (including the timeout for unflip)
+            setTimeout(() => { isChecking = false; }, isMatch ? 0 : 800);
+        }
+
+        function disableCards(card1, card2) {
+            card1.classList.add('matched');
+            card2.classList.add('matched');
+            // 移除點擊事件，但我們依賴 `matched` class 和 `flipCard` 函數中的檢查
+            card1.onclick = null;
+            card2.onclick = null;
+        }
+
+        function unflipCards(card1, card2) {
+            // 使用 setTimeout 延遲翻轉，讓使用者看清楚
+            setTimeout(() => {
+                card1.classList.remove('flipped');
+                card2.classList.remove('flipped');
+            }, 800);
+        }
+
+        function updateMatchCount() {
+            document.getElementById('match-count').textContent = matchesFound;
+        }
+        
+        document.getElementById('restart-memory-button').addEventListener('click', initializeMemoryGame);
+
+
+        // --- 應用程式啟動 ---
+        window.onload = () => {
+            renderLearnMode(); // 預設載入學習模式
+            // Call getDefaultVoice explicitly to try and load voices immediately
+            getDefaultVoice(); 
+        };
+    </script>
+</body>
+</html>
